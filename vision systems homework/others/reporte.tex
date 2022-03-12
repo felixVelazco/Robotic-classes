@@ -1,0 +1,282 @@
+\documentclass[spanish,10pt,letterpaper, twocolumn]{article}
+%\usepackage[utf8]{inputenc}
+\usepackage{babel}
+\usepackage{url}
+\usepackage[lmargin=1.5in, rmargin=1in,tmargin=1in, bmargin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{graphicx}
+
+\title{Tarea 01 -Modelo de control, sistema de visi\'on y planning-}
+\author{Rob\'otica, Ingenier\'ia Mecatr\'onica\\
+Instituto de Ingenier\'ia y Tecnolog\'ia, UACJ\\
+Catedr\'atico: Dr. Edgar A. Martinez\\
+%%%Nombre(s) Alumno(s)
+\textbf{Jos\'e F\'elix Velazco Velazco}\\ 
+\url{al140621@uacj.mx}
+}
+\date{\today}
+
+\providecommand{\e}[1]{\ensuremath{\times 10^{#1}}}
+
+\begin{document}
+\maketitle
+\section{Abstract}
+Pudin
+\section{Modelo de generacion de trayectorias}
+Para la trayectoria a seguir delrobot, se opt\'o por tomar una funci\'on $y(x)=\sin(x)$. La trayectoria a seguir debe de tener una amplitud de -0.8 a 0.8, y que se complete una onda completa empezando de 0 a 2, por lo que la funci\'on $y(x)$ como se ve en la ecuaci\'on \eqref{eq:eq1}.
+
+\begin{equation}
+{
+	\label{eq:eq1}
+	y(x)=0.8\cdot \sin\left( \frac{2\pi}{x^{max}}\cdot x\right) 
+}
+\end{equation}
+
+Donde $x^{max}$ ser\'a la distancia m\'axima de la onda, en este caso es igual a 2.
+Se obtuvieron 1000 valores de $x$, de 0 a 2 con incrementos de 0.002\\
+y con estos valores se calcularon los valores de $y(x)$ y teniendo estos valores en una tabla, se obtuvieron $\dot{x}$ y $\dot{y}$, mediante derivadas num\'ericas, obteniendo las ecuaciones \eqref{eq:eq2} y \eqref{eq:eq3} para obtener nuevamente 1000 valores
+
+\begin{equation}
+	\label{eq:eq2}
+	\dot{x}=\frac{dx}{dt}=\frac{x_t-x_{(t-1)}}{\Delta t}
+\end{equation} 
+
+\begin{equation}
+	\label{eq:eq3}
+	\dot{y}=\frac{dy}{dt}=\frac{y_t-y_{(t-1)}}{\Delta t}
+\end{equation} 
+
+Con estos valores, se obtuvieron los valores de $\dot{s}$ y $\theta$ con las ecuaciones \eqref{eq:eq4} y \eqref{eq:eq5}.
+
+\begin{equation}
+	\label{eq:eq4}
+	\dot{s}=\sqrt{\dot{x}^2+\dot{y}^2}
+\end{equation} 
+
+\begin{equation}
+	\label{eq:eq5}
+	\theta=\arctan\left(\frac{\dot{y}}{\dot{x}}\right)	
+\end{equation}
+
+Al obtener los valores de $\dot{s}$ y $\theta$, estos valores se meter\'an en una regresi\'on de grado 7, 
+
+Se sabe que $y=A \cdot x$, al despejar x, obtendremos la soluci\'on inversa $x=A^{-1} \cdot y$. En la ecuaci\'on \eqref{eq:eq6} se puede ver en su forma matricial, donde $y_i$ se sustituir\'a por $\dot{s}_i$ y $\theta_i$. 
+
+\begin{equation}
+\label{eq:eq6}
+\begin{bmatrix}
+	a_0 \\
+	a_1 \\
+	\vdots \\
+	a_7
+\end{bmatrix}
+	=
+\begin{bmatrix}
+	N & \Sigma t  & \cdots & \Sigma t^7\\
+	\Sigma t & \Sigma t^2  & \cdots & \Sigma t^8\\
+	\vdots & \vdots & \ddots & \vdots \\
+	\Sigma t^7 & \Sigma t^8 & \cdots & \Sigma t^{14}
+\end{bmatrix} ^{-1}
+\cdot
+\begin{bmatrix}
+	\Sigma(y_i)\\
+	\Sigma(t_iy_i)\\
+	\vdots \\
+	\Sigma(t_i^7y_i)
+\end{bmatrix}
+\end{equation}
+
+Esta operaci\'on nos dar\'a los polinomios de $v(t)=\dot{s}(t)$ y $\theta(t)$.
+
+\begin{equation}
+	\label{eq:eq7}
+	\begin{matrix}
+	v(t)=-4.19\e{-5}+0.02t-0.005t^2\\
+	+5.88\e{-4}t^3-3.17\e{-5}t^4\\
+	+8.35\e{-7}
+t^5-8.57\e{-9}t^6
+	\end{matrix}
+\end{equation}
+
+\begin{equation}
+	\label{eq:eq8}
+	\begin{matrix}
+	\theta(t)=-9.52\e{-5}+0.06t-0.015t^2\\
+	+0.0013t^3-5.89\e{-5}t^4+1.41\e{-6}t^5\\
+	-1.43345\e{-8}t^6
+	\end{matrix}
+\end{equation}
+
+Se tiene la velocidad lineal $v(t)$ como se ve en la ecuaci\'on \eqref{eq:eq7}. Para la velocidad angular, solo derivamos el polinomio $\theta(t)$, que se ve en la ecuaci\'on \eqref{eq:eq8}, para obtener finalmente $\omega (t)$ 
+ 
+\begin{equation}
+	\label{eq:eq9}
+	\begin{matrix}
+		\omega (t)=0.06-0.029t+0.004t^2-2.4\e{-4} t^3 \\
+		 +7.076\e{-6}t^4-8.6\e{-8}t^5
+	\end{matrix}
+\end{equation}
+
+
+
+%%%%%%%%%%%%%
+%%Las secciones del reporte tendran el titulo mas idoneo posible. No existe un numero para el total de secciones.
+\section{Modelo odom\'etrico}
+
+\subsection{Od\'ometros}
+Tomando en cuenta que el amigobot sensa mediante encoders, entonces se obtiene el siguiente modelo
+
+\begin{equation}
+	\label{eq:eq10}
+	s=\frac{2\pi r}{R}* \eta
+\end{equation}
+
+Con una derivada num\'erica sacamos las velocidades de cada llanta, as\'i como se ve en la ecuaci\'on \eqref{eq:eq12}
+
+\begin{equation*}
+	\label{eq:eq11}
+	v_D=\frac{2\pi r}{R \Delta t}(\eta_{R2}-\eta_{R1})
+\end{equation*}
+
+\begin{equation}
+	\label{eq:eq12}
+	v_L=\frac{2\pi r}{R \Delta t}(\eta_{L2}-\eta_{L1})
+\end{equation}
+
+La velocidad lineal del amigobot ser\'ia el promedio de las velocidades de las llantas. Y a partir de la ecuaci\'on \eqref{eq:eq13}, podemos inferir un modelo en donde se vean implicados las velocidades angulares de las llantas, como en la ecuaci\'on \eqref{eq:eq14}.
+
+
+\begin{equation}
+	\label{eq:eq13}
+	v_t=\frac{V_R+V_L}{2}
+\end{equation}
+
+\begin{equation*}
+	v_{(R,L)}=r \varphi_{(R,L)}
+\end{equation*}
+
+\begin{equation*}
+	\therefore v_t=\frac{r\dot{\varphi}_R+r\dot{\varphi}_L}{2}
+\end{equation*}
+
+\begin{equation}
+	\label{eq:eq14}
+	v_t(\dot{\varphi}_R,\dot{\varphi}_L)=\frac{r}{2}(\dot{\varphi}_R+\dot{\varphi}_L)
+\end{equation}
+
+Ahora obtendremos el modelo de velocidad angular en funci\'on de las velocidades angulares de las llantas, asumiendo que 
+
+\begin{equation}
+	\label{eq:eq15}
+	\hat{v}_t=v_R-v_L
+\end{equation}
+
+Entonces, tendremos que
+
+\begin{equation}
+	\label{eq:eq16}
+	\omega_t=\frac{\hat{v}_t}{\frac{b}{2}}=\frac{2}{b}\hat{v}_t
+\end{equation}
+
+\begin{equation}
+	\label{eq:eq17}
+	\omega_t(\dot{\varphi}_R,\dot{\varphi}_L)=\frac{2r}{b}(\dot{\varphi}_R-\dot{\varphi}_L)
+\end{equation}
+
+Y con la ecuaci\'on \eqref{eq:eq14} y \eqref{eq:eq17}, ser\'a nuestra ley de control.
+
+\subsection{Cinem\'atica}
+
+A partir de nuestra ley de control, vista en el tema pasado, podemos describirlo de manera matricial. 
+
+\begin{equation}
+	\label{eq:eq18}
+	\begin{bmatrix}
+		v_t \\ \\
+		w_t
+	\end{bmatrix}
+	=
+	\begin{bmatrix}
+		\frac{r}{2} & \frac{r}{2} \\ \\
+		\frac{2r}{b} & \frac{2r}{b}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\dot{\varphi}_R \\ \\
+		\dot{\varphi}_L
+	\end{bmatrix}
+\end{equation} 
+
+Para obtener nuestro vector de control, as\'i como se ve en la ecuaci\'on \eqref{eq:eq18}, tendremos que nuestra matriz de restricci\'on cinem\'atica lo multiplicaremos por nuestro vector de variables de control independiente, las cuales son las velocidades angulares de las llantas. 
+
+Esto se hace cuando se conocen las velocidades angulares de las llantas, pero se desconoce el valor las velocidades $v_t$ y $\omega_t$. 
+
+En caso de que si sepamos las velocidades $v_t$ y $\omega_t$, pero no las velocidades $\dot{\varphi}_R$ y $\dot{\varphi}_L$, entonces se opta por la soluci\'on inversa, con lo que tendriamos:
+
+\begin{equation}
+	\label{eq:eq19}
+	\begin{bmatrix}
+		\dot{\varphi}_R \\ \\
+		\dot{\varphi}_L
+	\end{bmatrix}
+	=
+	\begin{bmatrix}
+		\frac{r}{2} & \frac{r}{2} \\ \\
+		\frac{2r}{b} & \frac{2r}{b}
+	\end{bmatrix}^{-1}
+	\cdot
+	\begin{bmatrix}
+		v_t \\ \\
+		w_t
+	\end{bmatrix}
+\end{equation} 
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Modelo de sensado visual}
+
+\section{Resultados}
+
+
+\section{nombre-de-seccion}
+Las referencias bibliograficas se citan de la sig. manera \cite{clave1}, \cite{clave2, clave3}. 
+
+
+%\begin{figure}
+%\label{fig:grafica1}
+%\centering
+%\includegraphics[scale=0.5]{./nombrearchivo.pdf}
+%\caption{Descripci\'on el comportamiento de la velocidad angular $\dot{\varphi}_a$.}
+%\end{figure}
+
+\section{nombre-de-seccion}
+Los vectores $\mathbf{v}$ y matrices $\mathbf{A}$ se expresan de la siguiente manera.
+
+\begin{equation}
+\bm{\xi}_t =
+\begin{pmatrix}
+\cos(\phi) && \sin(\beta+\alpha)\\
+\ln(\gamma) && {\rm e}^\theta-\tau
+\end{pmatrix}
+\cdot
+\begin{pmatrix}
+x\\
+y
+\end{pmatrix}
+\end{equation}
+
+\section{Conclusiones}
+Qu\'e se logr\'o?, y no se logr'o?. Qu\'e fue dificil? qu\'e result\'o ser interesante/eficiente/f\'acil/dificil etc? Qu\'e se recomienda a partir de la experiencia obtenida?
+
+\begin{thebibliography}{10}
+\bibitem{clave1} Smith J., \textbf{Robotic mechanisms}, MIT, 2 Ed., 2010
+\bibitem{clave2} Weird K., \textbf{Mechanical systems}, IEEE RAS, vol. 1, 2001
+\bibitem{clave3} Da Vinci L., \textbf{Automata Machnines}, Wiley, 1999
+\end{thebibliography}
+\end{document}
+
