@@ -1,0 +1,87 @@
+# simple.world - basic world file example
+# Authors: Richard Vaughan
+# $Id$
+
+include "r6wd.inc"
+include "r4wd.inc"
+include "p1.inc"
+include "map.inc"
+include "sick.inc"
+include "hokuyo.inc"
+#include "LMS200.inc"
+
+# time to pause (in GUI mode) or quit (in headless mode (-g)) the simulation
+quit_time 3600 # 1 hour of simulated time
+
+paused 1
+
+resolution 0.02
+
+# configure the GUI window
+window
+(
+  size [ 1000.000 1000.000 ] # in pixels
+  scale 200   # pixels per meter
+  center [ -0.040  -0.274 ]
+  rotate [ 0  0 ]
+  show_footprints 1
+  show_data 1              # 1=on 0=off
+)
+
+# load an environment bitmap
+floorplan
+( 
+  name "autolab"
+  #size[25.0 25.0 0.8 ]
+  size [3.000 2.500 0.800]
+  #pose [-3 11 0 0]
+  pose [0 0 0 0]
+  bitmap "bitmaps/empty.png"
+)
+
+r4wd
+#fancypioneer2dx
+(		  
+  # can refer to the robot by this name
+  name "r1" 
+  pose [ 12.0 12.0 0 0.0 ]   #posicion inicial
+
+  # pioneer2dx's sonars	will be ranger:0 and the laser will be ranger:1
+  #hokuyolaser( pose [ 0 0 0 0 ])
+  hokuyolaser( pose [ 0 0 0 0 ] ) 
+  hokuyolaser( pose [ 0 0 0 180 ] ) 
+ 
+  # demonstrate a plugin controller, implemented in examples/ctrl/wander.cc
+  # you probably should comment this out when using simple.cfg with Player
+  # ctrl "wander"
+
+  # report error-free position in world coordinates
+  localization "gps"
+  localization_origin [ 0 0 0 0 ]
+)
+
+pioneer3at
+#r6wd
+#fancypioneer2dx
+(		  
+  # can refer to the robot by this name
+  name "r0" 
+  pose [ -1.0 0.0 0 0.0 ]   #posicion inicial
+
+  # pioneer2dx's sonars	will be ranger:0 and the laser will be ranger:1
+  #hokuyolaser( pose [ 0 0 0 0 ])
+  #hokuyolaser( pose [ 0 0 0 0 ] ) 
+  #hokuyolaser( pose [ 0 0 0 0 ] )
+
+
+  sicklaser( pose [ 0 0 0 0 ] )
+  sicklaser( pose [ 0 0 0 0 ] )
+ 
+  # demonstrate a plugin controller, implemented in examples/ctrl/wander.cc
+  # you probably should comment this out when using simple.cfg with Player
+  # ctrl "wander"
+
+  # report error-free position in world coordinates
+  localization "gps"
+  localization_origin [ 0 0 0 0 ]
+)
